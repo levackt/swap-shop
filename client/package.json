@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@cosmjs/sdk38": "^0.21.1",
+    "secretjs": "^0.9.17"
+  }
+}
