@@ -122,7 +122,7 @@ async function main() {
     txEncryptionSeed, customFees
   );
 
-  //Upload and init tokens
+  // Upload and init tokens
   const tokenWasm = fs.readFileSync(__dirname + "/../../contracts/secret-secret/contract.wasm");
   let uploadReceipt = await client.upload(tokenWasm, { });
   let codeId = uploadReceipt.codeId;
@@ -138,31 +138,33 @@ async function main() {
   pair1.initMsg.init_pair.token_a = secret_secret1.initMsg.contractAddress;
   pair1.initMsg.init_pair.token_b = secret_secret2.initMsg.contractAddress;
 
-  //upload and init pair
+  // upload and init pair
   const pairWasm = fs.readFileSync(__dirname + "/../../contracts/pair/contract.wasm");
   uploadReceipt = await client.upload(pairWasm, { });
   codeId = uploadReceipt.codeId;
   let initResult = await client.instantiate(codeId, pair1.initMsg, pair1.label);
   console.info(`Contract "${pair1.label}" instantiated at ${initResult.contractAddress}`);
 
-  //upload and init pair factory
+  // upload and init pair factory
   const pairFactoryWasm = fs.readFileSync(__dirname + "/../../contracts/pair-factory/contract.wasm");
   uploadReceipt = await client.upload(pairFactoryWasm, { });
   codeId = uploadReceipt.codeId;
   initResult = await client.instantiate(codeId, pairFactory.initMsg, pairFactory.label);
   console.info(`Contract "${pairFactory.label}" instantiated at ${initResult.contractAddress}`);
+  pairFactory.address = initResult.contractAddress;
 
+  const createPairMsg = { 
+    pair_label: "SCRTUSD", 
+    token_a: pair1.initMsg.init_pair.token_a,
+    token_a_code_hash: pair1.initMsg.init_pair.token_a_code_hash,
+    token_b: pair1.initMsg.init_pair.token_b,
+    token_b_code_hash: pair1.initMsg.init_pair.token_b_code_hash,
+  }
 
   let result = await client.execute(pairFactory.address, { 
-    create_pair: { 
-        pair_label: "SCRTSUSD", 
-        token_a: secret_secret1.address,
-        token_a_code_hash: secret_secret1.code_hash,
-        token_b: secret_secret2.address,
-        token_b_code_hash: secret_secret2.code_hash,
-    }
-  }, "", [],
-  );
+    create_pair: createPairMsg
+  });
+
   console.info(`create pair result: ${JSON.stringify(result)}`)
 }
 
